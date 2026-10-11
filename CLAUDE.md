@@ -27,6 +27,8 @@ Fuera de alcance por ahora (no agregar sin que lo pida): Bluetooth/HID, soporte 
 
 - Repo: `github.com/EGCGAP04/wifipad` (público, MIT). Usar `gh` para todo lo de GitHub. Si `gh` tiene más de una cuenta logueada, la activa tiene que ser `EGCGAP04` (`gh auth switch`).
 - `main` está protegida con un ruleset: **no se puede pushear directo**, ni hacer force-push, ni borrarla. Todo entra por PR (sin aprobaciones requeridas).
+- **Commits firmados en todas las ramas** (ruleset `signed-commits`): GitHub rechaza el push si hay un commit sin firmar. La firma ya está configurada en el `~/.gitconfig` de Enzo (SSH, `commit.gpgsign true`). Nunca usar `--no-gpg-sign`; si un commit sale sin firmar, rehacerlo firmado antes de pushear.
+- Dependabot abre PRs de actualización (`build(deps): ...`, `ci(deps): ...`, con label `dependencies`). Los revisa y mergea Enzo; no tocarlos salvo que lo pida. Que Dependabot actualice versiones no cuenta como "agregar dependencias".
 - Flujo: rama desde `main` actualizada → commits → `git push -u origin <rama>` → `gh pr create` → squash merge. La rama remota se borra sola al mergear; después, `git switch main && git pull` y borrar la rama local.
 - Nombre de rama: `<tipo>/<descripcion-corta>` en inglés, por ejemplo `feat/protocol-encoder` o `fix/server-timeout`.
 - Solo se permite **squash merge**: el **título del PR** pasa a ser el mensaje del commit en `main`, así que tiene que seguir Conventional Commits. Tipos: `feat`, `fix`, `docs`, `test`, `refactor`, `build`, `ci`, `chore`. Scopes: `protocol`, `server`, `app`, `docs`. Por ejemplo, `feat(protocol): add packet encoder and decoder`.
@@ -114,7 +116,7 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 ## Roadmap
 
 - [x] M0: proyecto Android Studio, repo, protocolo y documentación.
-- [ ] M1: módulo `:protocol` con tests (incluye el vector de prueba). CI con GitHub Actions que corra los tests en cada PR, agregado como check obligatorio al ruleset de `main`.
+- [ ] M1: módulo `:protocol` con tests (incluye el vector de prueba). CI con GitHub Actions que corra los tests en cada PR, agregado como check obligatorio al ruleset de `main`. Verificar que el code scanning de CodeQL (default setup, ya activado) detecte `java-kotlin` y `actions`: `gh api repos/EGCGAP04/wifipad/code-scanning/default-setup`.
 - [ ] M2: `:server` funcionando con `runFakeClient`. Verificado con `evtest` y `jstest-gtk`.
 - [ ] M3: `:app` MVP: campo IP/puerto, stick izquierdo, A/B/X/Y y Start, envío a 60 Hz.
 - [ ] M4: layout completo (dos sticks, gatillos, D-pad, bumpers), vibración, pantalla siempre encendida.
