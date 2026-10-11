@@ -28,6 +28,9 @@ Fuera de alcance por ahora (no agregar sin que lo pida): Bluetooth/HID, soporte 
 - Repo: `github.com/EGCGAP04/wifipad` (público, MIT). Usar `gh` para todo lo de GitHub. Si `gh` tiene más de una cuenta logueada, la activa tiene que ser `EGCGAP04` (`gh auth switch`).
 - `main` está protegida con un ruleset: **no se puede pushear directo**, ni hacer force-push, ni borrarla. Todo entra por PR (sin aprobaciones requeridas).
 - **Commits firmados en todas las ramas** (ruleset `signed-commits`): GitHub rechaza el push si hay un commit sin firmar. La firma ya está configurada en el `~/.gitconfig` de Enzo (SSH, `commit.gpgsign true`). Nunca usar `--no-gpg-sign`; si un commit sale sin firmar, rehacerlo firmado antes de pushear.
+- **CI** (`.github/workflows/ci.yml`): el job `Build and test` corre `./gradlew build` en cada PR y en `main`, y es check obligatorio del ruleset de `main`. Si se cambia el `name:` del job, actualizar el ruleset. Los módulos nuevos entran solos al CI por estar en `build`.
+- **CodeQL** (`.github/workflows/codeql.yml`): configuración avanzada, porque el default setup no soporta Kotlin (usa `build-mode: none`). Analiza `java-kotlin` compilando con Gradle y `actions`. El default setup tiene que quedar desactivado, porque si no, GitHub rechaza los resultados del workflow.
+- Las actions de los workflows van fijadas por SHA completo con la versión en un comentario (`@<sha> # v7.0.1`). Dependabot las actualiza.
 - Dependabot abre PRs de actualización (`build(deps): ...`, `ci(deps): ...`, con label `dependencies`). Los revisa y mergea Enzo; no tocarlos salvo que lo pida. Que Dependabot actualice versiones no cuenta como "agregar dependencias".
 - Flujo: rama desde `main` actualizada → commits → `git push -u origin <rama>` → `gh pr create` → squash merge. La rama remota se borra sola al mergear; después, `git switch main && git pull` y borrar la rama local.
 - Nombre de rama: `<tipo>/<descripcion-corta>` en inglés, por ejemplo `feat/protocol-encoder` o `fix/server-timeout`.
@@ -125,7 +128,7 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 ## Roadmap
 
 - [x] M0: proyecto Android Studio, repo, protocolo y documentación.
-- [ ] M1: módulo `:protocol` con tests (incluye el vector de prueba). CI con GitHub Actions que corra los tests en cada PR, agregado como check obligatorio al ruleset de `main`. Verificar que el code scanning de CodeQL (default setup, ya activado) detecte `java-kotlin` y `actions`: `gh api repos/EGCGAP04/wifipad/code-scanning/default-setup`.
+- [x] M1: módulo `:protocol` con tests (incluye el vector de prueba). CI con GitHub Actions como check obligatorio de `main` y CodeQL para Kotlin y Actions.
 - [ ] M2: `:server` funcionando con `runFakeClient`. Verificado con `evtest` y `jstest-gtk`.
 - [ ] M3: `:app` MVP: campo IP/puerto, stick izquierdo, A/B/X/Y y Start, envío a 60 Hz.
 - [ ] M4: layout completo (dos sticks, gatillos, D-pad, bumpers), vibración, pantalla siempre encendida.
