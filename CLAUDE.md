@@ -35,10 +35,9 @@ Fuera de alcance por ahora (no agregar sin que lo pida): Bluetooth/HID, soporte 
 - Un PR por paso revisable. Los commits dentro de la rama pueden ser chicos; lo que importa es el título del PR.
 - Milestones: una por hito del roadmap (`M0: Setup inicial` … `M8: Windows`). Cada issue y PR va en la milestone del hito al que aporta. Las milestones las cierra Enzo.
 - Proyecto: [wifipad](https://github.com/users/EGCGAP04/projects/5) (número 5, dueño `EGCGAP04`). Cada issue y PR va al proyecto. Al empezar algo, pasarlo a `In Progress`; al cerrar un issue o mergear un PR pasa a `Done` solo.
-- `gh` 2.45 (el de `apt`) falla en `gh pr edit` y `gh issue edit` con un error de "Projects (classic)". Para asignar milestone y agregar al proyecto, usar:
+- Asignar label, milestone y proyecto al crear (lo mismo con `gh issue create`, y con `gh pr edit`/`gh issue edit` para cambiarlos después):
   ```bash
-  gh api -X PATCH repos/EGCGAP04/wifipad/issues/<N> -F milestone=<número>   # sirve para PRs también
-  gh project item-add 5 --owner EGCGAP04 --url <url del issue o PR>
+  gh pr create --label protocol --milestone "M1: Protocolo" --project wifipad
   ```
 
 ## Protocolo
