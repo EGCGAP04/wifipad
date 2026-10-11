@@ -44,7 +44,27 @@ Si instalaste la regla con su nombre viejo (`99-wifipad-uinput.rules`), no tiene
 ./gradlew :server:run --args="--port 7654"
 ```
 
+El servidor crea un gamepad virtual llamado `wifipad` y espera paquetes. Se corta con Ctrl+C, que también borra el dispositivo. Si dejan de llegar paquetes durante 250 ms, suelta todos los botones y centra los sticks.
+
 Si usás `ufw`: `sudo ufw allow 7654/udp`.
+
+Para tener el servidor sin Gradle: `./gradlew :server:installDist` deja el binario en `server/build/install/server/bin/server`.
+
+### 4. Probar sin celular
+
+Con el servidor corriendo, en otra terminal:
+
+```bash
+./gradlew :server:runFakeClient                                      # a 127.0.0.1:7654
+./gradlew :server:runFakeClient --args="--host 192.168.0.10 --port 7654"
+```
+
+Manda un patrón a 60 Hz: los sticks giran, los gatillos suben y bajan, y los botones y el D-pad se apretan de a uno. Para verlo:
+
+```bash
+evtest        # elegí "wifipad" en la lista: muestra los eventos crudos
+jstest-gtk    # ejes y botones en una ventana
+```
 
 ## App Android
 
