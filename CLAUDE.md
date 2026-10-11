@@ -33,6 +33,13 @@ Fuera de alcance por ahora (no agregar sin que lo pida): Bluetooth/HID, soporte 
 - El cuerpo del PR queda como cuerpo del commit: qué cambió, por qué y cómo se verificó (tests y build corridos).
 - Labels por módulo: `protocol`, `server`, `app` y `documentation`. Ponerlas al crear el PR (`gh pr create --label ...`).
 - Un PR por paso revisable. Los commits dentro de la rama pueden ser chicos; lo que importa es el título del PR.
+- Milestones: una por hito del roadmap (`M0: Setup inicial` … `M8: Windows`). Cada issue y PR va en la milestone del hito al que aporta. Las milestones las cierra Enzo.
+- Proyecto: [wifipad](https://github.com/users/EGCGAP04/projects/5) (número 5, dueño `EGCGAP04`). Cada issue y PR va al proyecto. Al empezar algo, pasarlo a `In Progress`; al cerrar un issue o mergear un PR pasa a `Done` solo.
+- `gh` 2.45 (el de `apt`) falla en `gh pr edit` y `gh issue edit` con un error de "Projects (classic)". Para asignar milestone y agregar al proyecto, usar:
+  ```bash
+  gh api -X PATCH repos/EGCGAP04/wifipad/issues/<N> -F milestone=<número>   # sirve para PRs también
+  gh project item-add 5 --owner EGCGAP04 --url <url del issue o PR>
+  ```
 
 ## Protocolo
 
@@ -117,4 +124,4 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 - [ ] M7: giroscopio.
 - [ ] M8: evaluar soporte para Windows (ViGEmClient vía JNA).
 
-Al terminar un hito, marcarlo acá y actualizar el README si cambió cómo se usa.
+Al terminar un hito, marcarlo acá (en el último PR del hito) y actualizar el README si cambió cómo se usa. Enzo cierra la milestone en GitHub.
