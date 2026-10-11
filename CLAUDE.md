@@ -35,6 +35,7 @@ Fuera de alcance por ahora (no agregar sin que lo pida): Bluetooth/HID, soporte 
 - El cuerpo del PR queda como cuerpo del commit: qué cambió, por qué y cómo se verificó (tests y build corridos).
 - Labels por módulo: `protocol`, `server`, `app` y `documentation`. Ponerlas al crear el PR (`gh pr create --label ...`).
 - Un PR por paso revisable. Los commits dentro de la rama pueden ser chicos; lo que importa es el título del PR.
+- **Merge**: Claude mergea solo si Enzo lo pide explícitamente para ese PR (por ejemplo, "mergeá el #9"; puede ser desde el celular). Antes, revisar que el PR esté `MERGEABLE` y que pasen los checks del CI. Usar `gh pr merge <N> --squash --match-head-commit <SHA completo>`, para no mergear commits que nadie revisó. Después, actualizar `main` local y borrar la rama.
 - Milestones: una por hito del roadmap (`M0: Setup inicial` … `M8: Windows`). Cada issue y PR va en la milestone del hito al que aporta. Las milestones las cierra Enzo.
 - Proyecto: [wifipad](https://github.com/users/EGCGAP04/projects/5) (número 5, dueño `EGCGAP04`). Cada issue y PR va al proyecto. Al empezar algo, pasarlo a `In Progress`; al cerrar un issue o mergear un PR pasa a `Done` solo.
 - Todos los issues y PRs se **asignan a Enzo** (`EGCGAP04`). Al crear, asignar también label, milestone y proyecto (lo mismo con `gh issue create`, y con `gh pr edit`/`gh issue edit` para cambiarlos después):
@@ -83,9 +84,9 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 ## Arquitectura
 
 ### `:protocol`
-- `GamepadState`: data class inmutable con el estado completo. Constantes de bits de botones.
-- `Protocol`: `encode(state, seq): ByteArray` y `decode(bytes): Packet?` con `ByteBuffer` en `LITTLE_ENDIAN`. Devuelve `null` si el paquete es inválido.
-- `isNewer(seq, last)`: comparación con aritmética de números de serie.
+- `GamepadState`: data class inmutable con el estado completo, todo en `Int`. Valida los rangos en `init` (tira `IllegalArgumentException`): quien lo construye tiene que limitar los valores antes. Constantes de bits de botones (`GamepadState.A`, `DPAD_UP`, ...), `isPressed(button)` y `GamepadState.NEUTRAL`.
+- `Protocol`: `encode(state, seq: UInt): ByteArray` y `decode(bytes, length = bytes.size): Packet?` con `ByteBuffer` en `LITTLE_ENDIAN`. `decode` devuelve `null` si el paquete es inválido; `length` permite pasarle el buffer de recepción del servidor sin copiarlo. `Packet(seq: UInt, state)`.
+- `Protocol.isNewer(seq, last)`: comparación con aritmética de números de serie.
 - Sin dependencias, sin I/O, sin APIs que no existan en Android API 26. Compila con `jvmToolchain(17)`.
 
 ### `:server`
@@ -114,7 +115,8 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 - **Permisos de `/dev/uinput`**: por defecto es solo root. Instalar `server/udev/99-wifipad-uinput.rules` (ver README). No usar `sudo` como solución.
 - **Structs nativos**: con libevdev no hace falta mapear `input_event` ni `uinput_setup`. Lo único que se pasa por JNA es `input_absinfo` (6 × `int`) para los ejes.
 - **Eje Y**: arriba es **negativo** (convención de Linux). Coincide con las coordenadas de pantalla de Android, así que no hay que invertir nada.
-- **`seq` da la vuelta** a los 2³²: usar `isNewer`, nunca `>`. En Kotlin, `seq` se maneja como `UInt` o como `Long` enmascarado.
+- **`seq` da la vuelta** a los 2³²: usar `Protocol.isNewer`, nunca `>`. En Kotlin, `seq` es `UInt`.
+- **`ByteBuffer` en `:protocol`**: usar solo los accesos absolutos (`getInt(index)`, `put(index, b)`). Los métodos de `Buffer` (`position`, `flip`, `limit`...) compilados con JDK 9+ apuntan a sobrecargas que las versiones viejas de Android pueden no tener.
 - **Timeout**: 250 ms sin paquetes válidos → soltar todo y centrar ejes. Nunca dejar un botón trabado.
 - **Emulador de Android**: la PC host es `10.0.2.2`, no `127.0.0.1`.
 - **Firewall**: si `ufw` está activo, `sudo ufw allow 7654/udp`.
