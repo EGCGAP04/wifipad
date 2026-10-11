@@ -98,7 +98,7 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 - `VirtualGamepad`: `create()` arma el dispositivo con `AXES` y `BUTTONS`; `update(state)` emite lo que cambió, seguido de `SYN_REPORT`. Implementa `AutoCloseable` y destruye el dispositivo al cerrar (también en Ctrl+C, con un shutdown hook). Si falta permiso sobre `/dev/uinput`, el error apunta a la regla de udev.
 - `ClientSession`: reglas del servidor de `docs/protocol.md` (un cliente enganchado, `seq` con `Protocol.isNewer`, timeout de 250 ms). Recibe el tiempo (`System.nanoTime()`) como parámetro, así se testea sin reloj ni socket.
 - `Main.kt`: loop UDP con `DatagramSocket` y `soTimeout` de 50 ms para chequear el timeout, y CLI mínima parseada a mano (`parseArgs`: `--port`, `--help`). Solo el hilo principal toca el `VirtualGamepad`: en Ctrl+C, el shutdown hook cierra el socket y espera a que el loop salga y destruya el dispositivo.
-- `FakeClient.kt`: segundo `main` que manda paquetes a 60 Hz con un patrón (stick girando, botones alternando). Expuesto como tarea `runFakeClient`.
+- `FakeClient.kt`: segundo `main` que manda paquetes a 60 Hz con un patrón (sticks girando, gatillos subiendo y bajando, botones y D-pad de a uno). El patrón es una función pura del tiempo (`fakeState`), con tests. Expuesto como tarea `runFakeClient` (`--host`, `--port`).
 - Reutilizar buffers en el loop. No hace falta optimizar más.
 
 ### `:app`
@@ -131,7 +131,7 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 
 - [x] M0: proyecto Android Studio, repo, protocolo y documentación.
 - [x] M1: módulo `:protocol` con tests (incluye el vector de prueba). CI con GitHub Actions como check obligatorio de `main` y CodeQL para Kotlin y Actions.
-- [ ] M2: `:server` funcionando con `runFakeClient`. Verificado con `evtest` y `jstest-gtk`.
+- [x] M2: `:server` funcionando con `runFakeClient`. Verificado con `evtest` y `jstest-gtk`.
 - [ ] M3: `:app` MVP: campo IP/puerto, stick izquierdo, A/B/X/Y y Start, envío a 60 Hz.
 - [ ] M4: layout completo (dos sticks, gatillos, D-pad, bumpers), vibración, pantalla siempre encendida.
 - [ ] M5: descubrimiento automático de la PC en la red local.

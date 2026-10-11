@@ -31,16 +31,18 @@ internal fun parseArgs(args: Array<String>): Options {
     while (i < args.size) {
         when (val arg = args[i++]) {
             "-h", "--help" -> options = options.copy(help = true)
-            "--port" -> {
-                val value = requireNotNull(args.getOrNull(i++)) { "--port needs a value" }
-                val port = value.toIntOrNull()
-                require(port != null && port in 1..65535) { "invalid port: $value" }
-                options = options.copy(port = port)
-            }
+            "--port" -> options = options.copy(port = parsePort(args.getOrNull(i++)))
             else -> throw IllegalArgumentException("unknown option: $arg")
         }
     }
     return options
+}
+
+/** Throws [IllegalArgumentException] if [value] is missing or not a valid UDP port. */
+internal fun parsePort(value: String?): Int {
+    val port = requireNotNull(value) { "--port needs a value" }.toIntOrNull()
+    require(port != null && port in 1..65535) { "invalid port: $value" }
+    return port
 }
 
 @Volatile
@@ -77,7 +79,7 @@ fun main(args: Array<String>) {
     println("Stopped")
 }
 
-private fun fail(message: String, status: Int = 1): Nothing {
+internal fun fail(message: String, status: Int = 1): Nothing {
     System.err.println("Error: $message")
     exitProcess(status)
 }
