@@ -116,7 +116,7 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 
 ## Gotchas conocidos
 
-- **Permisos de `/dev/uinput`**: por defecto es solo root. Instalar `server/udev/99-wifipad-uinput.rules` (ver README). No usar `sudo` como solución.
+- **Permisos de `/dev/uinput`**: por defecto es solo root. Instalar `server/udev/70-wifipad-uinput.rules` (ver README). No usar `sudo` como solución. El número del archivo tiene que ser menor a 73: si no, la etiqueta `uaccess` llega tarde y el permiso no se aplica.
 - **Structs nativos**: con libevdev no hace falta mapear `input_event` ni `uinput_setup`. Lo único que se pasa por JNA es `input_absinfo` (6 × `int`) para los ejes.
 - **Eje Y**: arriba es **negativo** (convención de Linux). Coincide con las coordenadas de pantalla de Android, así que no hay que invertir nada.
 - **`seq` da la vuelta** a los 2³²: usar `Protocol.isNewer`, nunca `>`. En Kotlin, `seq` es `UInt`.
