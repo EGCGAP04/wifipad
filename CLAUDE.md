@@ -37,10 +37,15 @@ Fuera de alcance por ahora (no agregar sin que lo pida): Bluetooth/HID, soporte 
 - Un PR por paso revisable. Los commits dentro de la rama pueden ser chicos; lo que importa es el título del PR.
 - Milestones: una por hito del roadmap (`M0: Setup inicial` … `M8: Windows`). Cada issue y PR va en la milestone del hito al que aporta. Las milestones las cierra Enzo.
 - Proyecto: [wifipad](https://github.com/users/EGCGAP04/projects/5) (número 5, dueño `EGCGAP04`). Cada issue y PR va al proyecto. Al empezar algo, pasarlo a `In Progress`; al cerrar un issue o mergear un PR pasa a `Done` solo.
-- Asignar label, milestone y proyecto al crear (lo mismo con `gh issue create`, y con `gh pr edit`/`gh issue edit` para cambiarlos después):
+- Todos los issues y PRs se **asignan a Enzo** (`EGCGAP04`). Al crear, asignar también label, milestone y proyecto (lo mismo con `gh issue create`, y con `gh pr edit`/`gh issue edit` para cambiarlos después):
   ```bash
-  gh pr create --label protocol --milestone "M1: Protocolo" --project wifipad
+  gh pr create --assignee @me --label protocol --milestone "M1: Protocolo" --project wifipad
   ```
+- Lo que se agrega al proyecto pasa a `Todo` solo, aunque tarda unos segundos. Para cambiar el estado:
+  ```bash
+  gh project item-edit 5 --owner EGCGAP04 --url <url del issue o PR> --field Status --value "In Progress"
+  ```
+- Un PR que resuelve un issue lleva `Closes #N` en el cuerpo. Las tareas que salen de un issue grande se crean como sub-issues de ese issue (`gh api repos/EGCGAP04/wifipad/issues/<padre>/sub_issues -F sub_issue_id=<id del hijo>`, donde el id es el `.id` del issue, no el número).
 
 ## Protocolo
 
