@@ -1,0 +1,28 @@
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+build/
+**/build/
+local.properties
+
+# Android
+*.apk
+*.aab
+*.keystore
+*.jks
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Claude Code (config personal)
+.claude/settings.local.json
+CLAUDE.local.md

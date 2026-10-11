@@ -1,0 +1,2 @@
+# Da acceso a /dev/uinput al usuario con sesión activa (para correr el servidor sin sudo).
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"
