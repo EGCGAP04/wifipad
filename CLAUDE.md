@@ -21,7 +21,7 @@ Fuera de alcance por ahora (no agregar sin que lo pida): Bluetooth/HID, soporte 
 - Trabajá en pasos chicos y revisables. Después de cada paso, corré los tests y el build del módulo afectado.
 - Al terminar, resumí qué cambió y explicá brevemente cualquier decisión no obvia (sobre todo en el interop nativo y el multitouch), para que la revisión sea fácil.
 - No hagas `git commit` ni `git push`, ni abras PRs, sin que te lo pida. Cuando te lo pida, usá Conventional Commits.
-- No agregues dependencias sin preguntar. Las aprobadas: JNA (`:server`), kotlinx-coroutines (`:app`), kotlin-test/JUnit.
+- No agregues dependencias sin preguntar. Las aprobadas: JNA (`:server`), kotlinx-coroutines (`:app`), kotlin-test/JUnit y, en el build, el plugin `foojay-resolver-convention` (baja los JDK de las toolchains).
 
 ## Git y GitHub
 
@@ -61,7 +61,8 @@ Reglas:
 
 - PC: Linux Mint (base Ubuntu, `apt`). JDK 21 (el de Android Studio sirve).
 - Android: Android Studio, Gradle con Kotlin DSL y version catalog (`gradle/libs.versions.toml`), `minSdk 26`.
-- Las versiones de dependencias y plugins van **siempre** en el version catalog.
+- Las versiones de dependencias y plugins van **siempre** en el version catalog. Única excepción: los plugins del bloque `plugins {}` de `settings.gradle.kts` (foojay), porque ahí el catálogo todavía no está disponible.
+- Las toolchains (`jvmToolchain(17)` en `:protocol`) las resuelve Gradle con foojay: alcanza con tener un JDK 21 para correr Gradle.
 
 ## Comandos
 
@@ -104,6 +105,7 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 ## Convenciones
 
 - Código, identificadores y commits en inglés. Documentación en español.
+- Paquete base: `io.github.egcgap04.wifipad`, con un subpaquete por módulo (`.protocol`, `.server`, `.app`). El `applicationId` de Android es `io.github.egcgap04.wifipad.app`.
 - Estilo oficial de Kotlin. Nada de `!!` salvo que esté justificado en un comentario.
 - Cambios enfocados; no mezclar `:app` y `:server` en el mismo PR salvo cambios de protocolo.
 
