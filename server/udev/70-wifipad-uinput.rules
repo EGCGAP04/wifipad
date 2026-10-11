@@ -1,2 +1,4 @@
 # Da acceso a /dev/uinput al usuario con sesión activa (para correr el servidor sin sudo).
+# El número tiene que ser menor a 73: 73-seat-late.rules (systemd) da el permiso solo a los
+# dispositivos que ya tienen la etiqueta "uaccess" cuando se procesa.
 KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"

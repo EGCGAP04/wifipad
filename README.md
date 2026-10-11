@@ -28,13 +28,15 @@ Necesitás un JDK 21 (sirve el que trae Android Studio).
 ### 2. Permisos para `/dev/uinput` (una sola vez)
 
 ```bash
-sudo cp server/udev/99-wifipad-uinput.rules /etc/udev/rules.d/
+sudo cp server/udev/70-wifipad-uinput.rules /etc/udev/rules.d/
 echo uinput | sudo tee /etc/modules-load.d/uinput.conf
 sudo modprobe uinput
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
 
-Si sigue sin permisos, cerrá sesión y volvé a entrar.
+Para comprobarlo, `getfacl /dev/uinput` tiene que mostrar tu usuario con `rw-`. Si no, cerrá sesión y volvé a entrar.
+
+Si instalaste la regla con su nombre viejo (`99-wifipad-uinput.rules`), no tiene efecto: borrala de `/etc/udev/rules.d/` e instalá la nueva.
 
 ### 3. Correr
 
