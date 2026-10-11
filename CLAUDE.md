@@ -96,7 +96,8 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 - `Evdev.kt`: bindings JNA mínimas de libevdev (solo las funciones que se usan) e `InputAbsinfo`. Cargar con el nombre `"evdev"` y, si falla, con la ruta `libevdev.so.2`, para no exigir el paquete `-dev`. `InputCodes.kt`: constantes de `<linux/input-event-codes.h>` con los nombres de C.
 - `GamepadEvents.kt`: el mapeo de `docs/protocol.md` (`BUTTONS`, `AXES`, D-pad a `ABS_HAT0X/Y`) y `forEachChange(old, new, emit)`, que calcula los eventos que cambiaron. Es puro e `inline` (no reserva memoria en el loop) y es lo que se testea, porque el CI no tiene `/dev/uinput`.
 - `VirtualGamepad`: `create()` arma el dispositivo con `AXES` y `BUTTONS`; `update(state)` emite lo que cambió, seguido de `SYN_REPORT`. Implementa `AutoCloseable` y destruye el dispositivo al cerrar (también en Ctrl+C, con un shutdown hook). Si falta permiso sobre `/dev/uinput`, el error apunta a la regla de udev.
-- `Main.kt`: loop UDP con `DatagramSocket` y `soTimeout` para chequear el timeout de 250 ms, enganche de un cliente, CLI mínima parseada a mano.
+- `ClientSession`: reglas del servidor de `docs/protocol.md` (un cliente enganchado, `seq` con `Protocol.isNewer`, timeout de 250 ms). Recibe el tiempo (`System.nanoTime()`) como parámetro, así se testea sin reloj ni socket.
+- `Main.kt`: loop UDP con `DatagramSocket` y `soTimeout` de 50 ms para chequear el timeout, y CLI mínima parseada a mano (`parseArgs`: `--port`, `--help`). Solo el hilo principal toca el `VirtualGamepad`: en Ctrl+C, el shutdown hook cierra el socket y espera a que el loop salga y destruya el dispositivo.
 - `FakeClient.kt`: segundo `main` que manda paquetes a 60 Hz con un patrón (stick girando, botones alternando). Expuesto como tarea `runFakeClient`.
 - Reutilizar buffers en el loop. No hace falta optimizar más.
 
