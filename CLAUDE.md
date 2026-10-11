@@ -41,7 +41,10 @@ Fuera de alcance por ahora (no agregar sin que lo pida): Bluetooth/HID, soporte 
   ```bash
   gh pr create --assignee @me --label protocol --milestone "M1: Protocolo" --project wifipad
   ```
-- Lo que se agrega con `--project` entra sin estado: ponerle `Todo` o `In Progress` a mano con `gh project item-edit`.
+- Lo que se agrega al proyecto pasa a `Todo` solo, aunque tarda unos segundos. Para cambiar el estado:
+  ```bash
+  gh project item-edit 5 --owner EGCGAP04 --url <url del issue o PR> --field Status --value "In Progress"
+  ```
 - Un PR que resuelve un issue lleva `Closes #N` en el cuerpo. Las tareas que salen de un issue grande se crean como sub-issues de ese issue (`gh api repos/EGCGAP04/wifipad/issues/<padre>/sub_issues -F sub_issue_id=<id del hijo>`, donde el id es el `.id` del issue, no el número).
 
 ## Protocolo
