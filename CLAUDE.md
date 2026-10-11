@@ -20,8 +20,25 @@ Fuera de alcance por ahora (no agregar sin que lo pida): Bluetooth/HID, soporte 
 - Antes de cambios grandes (un módulo nuevo o más de ~3 archivos), mostrá un plan corto y esperá el OK.
 - Trabajá en pasos chicos y revisables. Después de cada paso, corré los tests y el build del módulo afectado.
 - Al terminar, resumí qué cambió y explicá brevemente cualquier decisión no obvia (sobre todo en el interop nativo y el multitouch), para que la revisión sea fácil.
-- No hagas `git commit` ni `git push` sin que te lo pida. Cuando te lo pida, usá Conventional Commits.
+- No hagas `git commit` ni `git push`, ni abras PRs, sin que te lo pida. Cuando te lo pida, usá Conventional Commits.
 - No agregues dependencias sin preguntar. Las aprobadas: JNA (`:server`), kotlinx-coroutines (`:app`), kotlin-test/JUnit.
+
+## Git y GitHub
+
+- Repo: `github.com/EGCGAP04/wifipad` (público, MIT). Usar `gh` para todo lo de GitHub. Si `gh` tiene más de una cuenta logueada, la activa tiene que ser `EGCGAP04` (`gh auth switch`).
+- `main` está protegida con un ruleset: **no se puede pushear directo**, ni hacer force-push, ni borrarla. Todo entra por PR (sin aprobaciones requeridas).
+- Flujo: rama desde `main` actualizada → commits → `git push -u origin <rama>` → `gh pr create` → squash merge. La rama remota se borra sola al mergear; después, `git switch main && git pull` y borrar la rama local.
+- Nombre de rama: `<tipo>/<descripcion-corta>` en inglés, por ejemplo `feat/protocol-encoder` o `fix/server-timeout`.
+- Solo se permite **squash merge**: el **título del PR** pasa a ser el mensaje del commit en `main`, así que tiene que seguir Conventional Commits. Tipos: `feat`, `fix`, `docs`, `test`, `refactor`, `build`, `ci`, `chore`. Scopes: `protocol`, `server`, `app`, `docs`. Por ejemplo, `feat(protocol): add packet encoder and decoder`.
+- El cuerpo del PR queda como cuerpo del commit: qué cambió, por qué y cómo se verificó (tests y build corridos).
+- Labels por módulo: `protocol`, `server`, `app` y `documentation`. Ponerlas al crear el PR (`gh pr create --label ...`).
+- Un PR por paso revisable. Los commits dentro de la rama pueden ser chicos; lo que importa es el título del PR.
+- Milestones: una por hito del roadmap (`M0: Setup inicial` … `M8: Windows`). Cada issue y PR va en la milestone del hito al que aporta. Las milestones las cierra Enzo.
+- Proyecto: [wifipad](https://github.com/users/EGCGAP04/projects/5) (número 5, dueño `EGCGAP04`). Cada issue y PR va al proyecto. Al empezar algo, pasarlo a `In Progress`; al cerrar un issue o mergear un PR pasa a `Done` solo.
+- Asignar label, milestone y proyecto al crear (lo mismo con `gh issue create`, y con `gh pr edit`/`gh issue edit` para cambiarlos después):
+  ```bash
+  gh pr create --label protocol --milestone "M1: Protocolo" --project wifipad
+  ```
 
 ## Protocolo
 
@@ -81,7 +98,7 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 
 - Código, identificadores y commits en inglés. Documentación en español.
 - Estilo oficial de Kotlin. Nada de `!!` salvo que esté justificado en un comentario.
-- Cambios enfocados; no mezclar `:app` y `:server` en el mismo commit salvo cambios de protocolo.
+- Cambios enfocados; no mezclar `:app` y `:server` en el mismo PR salvo cambios de protocolo.
 
 ## Gotchas conocidos
 
@@ -97,7 +114,7 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 ## Roadmap
 
 - [x] M0: proyecto Android Studio, repo, protocolo y documentación.
-- [ ] M1: módulo `:protocol` con tests (incluye el vector de prueba).
+- [ ] M1: módulo `:protocol` con tests (incluye el vector de prueba). CI con GitHub Actions que corra los tests en cada PR, agregado como check obligatorio al ruleset de `main`.
 - [ ] M2: `:server` funcionando con `runFakeClient`. Verificado con `evtest` y `jstest-gtk`.
 - [ ] M3: `:app` MVP: campo IP/puerto, stick izquierdo, A/B/X/Y y Start, envío a 60 Hz.
 - [ ] M4: layout completo (dos sticks, gatillos, D-pad, bumpers), vibración, pantalla siempre encendida.
@@ -106,4 +123,4 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 - [ ] M7: giroscopio.
 - [ ] M8: evaluar soporte para Windows (ViGEmClient vía JNA).
 
-Al terminar un hito, marcarlo acá y actualizar el README si cambió cómo se usa.
+Al terminar un hito, marcarlo acá (en el último PR del hito) y actualizar el README si cambió cómo se usa. Enzo cierra la milestone en GitHub.
