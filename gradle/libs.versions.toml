@@ -1,4 +1,5 @@
 [versions]
+agp = "9.4.1"
 kotlin = "2.4.21"
 jna = "5.19.1"
 
@@ -7,6 +8,9 @@ jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 
 # With useJUnitPlatform(), the Kotlin plugin resolves this to kotlin-test-junit5.
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+# Android unit tests run on JUnit 4, and AGP's built-in Kotlin does not pick the variant by itself.
+kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 
 [plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

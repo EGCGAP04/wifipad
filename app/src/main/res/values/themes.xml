@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Wifipad" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Dark status bar icons over the light background (the app draws edge to edge). -->
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

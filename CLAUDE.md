@@ -102,6 +102,8 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 - Reutilizar buffers en el loop. No hace falta optimizar más.
 
 ### `:app`
+- Sin AndroidX: `Activity` y vistas del framework, más `kotlinx-coroutines`. Kotlin lo compila el soporte integrado de AGP 9 (no hay plugin `kotlin-android`), por eso los tests usan `kotlin-test-junit` explícito.
+- `ConnectActivity`: pantalla de conexión (IP y puerto). `ConnectionSettings.parseHost/parsePort` validan (solo IPv4, sin DNS en el hilo principal) y son lo que se testea; `ConnectionStore` guarda lo último en `SharedPreferences`.
 - `GamepadView`: `View` custom que dibuja en `Canvas` y maneja multitouch por **pointer ID**: cada dedo "captura" el control donde empezó el toque hasta que lo levanta (`ACTION_POINTER_DOWN/UP`, `ACTION_MOVE` recorriendo todos los pointers, `ACTION_CANCEL` suelta todo).
 - El estado se publica en un `StateFlow<GamepadState>`.
 - `UdpSender`: corrutina en `Dispatchers.IO` que cada ~16 ms toma el último estado, lo codifica con `:protocol` y lo manda con `DatagramSocket`. No encola estados.
