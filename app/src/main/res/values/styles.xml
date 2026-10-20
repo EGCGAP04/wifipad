@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LinearLayout ignores maxWidth, so wide screens override the width in values-w600dp. -->
+    <style name="ConnectForm">
+        <item name="android:layout_width">match_parent</item>
+    </style>
+</resources>
