@@ -22,5 +22,6 @@ kotlin {
 
 dependencies {
     implementation(project(":protocol"))
+    implementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.kotlin.test.junit)
 }

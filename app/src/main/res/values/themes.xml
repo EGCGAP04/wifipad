@@ -4,4 +4,9 @@
         <!-- Dark status bar icons over the light background (the app draws edge to edge). -->
         <item name="android:windowLightStatusBar">true</item>
     </style>
+
+    <!-- The gamepad is always dark, whatever the system theme. -->
+    <style name="Theme.Wifipad.Gamepad" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/gamepad_background</item>
+    </style>
 </resources>
