@@ -1,11 +1,11 @@
 package io.github.egcgap04.wifipad.app
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
 import java.util.Locale
 
 /** First screen: the address of the PC running the server. */
@@ -41,7 +41,6 @@ class ConnectActivity : Activity() {
         if (host == null || port == null) return
 
         store.save(ConnectionSettings(host, port))
-        // TODO(#22): open the gamepad screen instead.
-        Toast.makeText(this, getString(R.string.saved, host, port), Toast.LENGTH_SHORT).show()
+        startActivity(Intent(this, GamepadActivity::class.java))
     }
 }
