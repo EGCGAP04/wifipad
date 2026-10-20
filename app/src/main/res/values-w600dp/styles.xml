@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Landscape phones and tablets: keep the form narrow and centered. -->
+    <style name="ConnectForm">
+        <item name="android:layout_width">480dp</item>
+    </style>
+</resources>
