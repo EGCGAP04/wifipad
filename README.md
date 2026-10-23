@@ -78,7 +78,18 @@ Con el servidor corriendo:
 
 1. En la app, ingresá la IP local de la PC (`hostname -I`) y el puerto, y tocá **Conectar**.
 2. En Android 17 o más nuevo, la app pide permiso para encontrar y conectarse a **dispositivos cercanos**: hace falta para mandar paquetes a la PC por la red local. Si lo negaste, habilitalo en los ajustes de la app.
-3. Se abre el control en pantalla completa y horizontal: el stick a la izquierda, A/B/X/Y a la derecha y Start arriba. Se pueden usar varios dedos a la vez.
+3. Se abre el control en pantalla completa y horizontal, con la distribución de un control de Xbox. Se pueden usar varios dedos a la vez, y la pantalla no se apaga mientras el control está abierto.
+
+| Control | Dónde está | Cómo se usa |
+|---|---|---|
+| Stick izquierdo | Arriba a la izquierda | Arrastrá el dedo. **Doble toque** rápido y dejá el dedo apoyado para apretar L3. |
+| Stick derecho | Abajo a la derecha | Igual que el izquierdo; el doble toque aprieta R3. |
+| D-pad | Abajo a la izquierda | Sigue al dedo: deslizalo para cambiar de dirección o ir a una diagonal sin levantarlo. |
+| A, B, X, Y | Arriba a la derecha | Quedan apretados hasta que levantás el dedo, aunque se salga del botón. |
+| LB/RB y LT/RT | Esquinas de arriba | Los gatillos van a fondo o sueltos: la pantalla no mide presión. |
+| Back (⧉), Guide (⌂) y Start (≡) | Arriba en el centro | Más chicos, para no tocarlos sin querer. |
+
+Al apretar un control, el celular vibra un instante si tenés activada la respuesta táctil en los ajustes del sistema.
 
 La app manda el estado 60 veces por segundo mientras el control está en pantalla. Si salís de la app o la mandás a segundo plano, suelta todo y deja de mandar.
 
