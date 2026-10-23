@@ -103,12 +103,12 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 
 ### `:app`
 - Sin AndroidX: `Activity` y vistas del framework, más `kotlinx-coroutines`. Kotlin lo compila el soporte integrado de AGP 9 (no hay plugin `kotlin-android`), por eso los tests usan `kotlin-test-junit` explícito.
-- `ConnectActivity`: pantalla de conexión (IP y puerto). `ConnectionSettings.parseHost/parsePort` validan (solo IPv4, sin DNS en el hilo principal) y son lo que se testea; `ConnectionStore` guarda lo último en `SharedPreferences`.
+- `ConnectActivity`: pantalla de conexión (IP y puerto). `ConnectionSettings.parseHost/parsePort` validan (solo IPv4, sin DNS en el hilo principal) y son lo que se testea; `ConnectionStore` guarda lo último en `SharedPreferences`. Antes de abrir el gamepad pide `ACCESS_LOCAL_NETWORK` (ver gotchas); si se lo niegan, ofrece ir a los ajustes de la app.
 - `GamepadView`: `View` custom que dibuja en `Canvas` y maneja multitouch por **pointer ID**: cada dedo "captura" el control donde empezó el toque hasta que lo levanta (`ACTION_POINTER_DOWN/UP`, `ACTION_MOVE` recorriendo todos los pointers, `ACTION_CANCEL` suelta todo). Solo dibuja y traduce eventos: la lógica es pura y con tests de JVM, en `GamepadLayout` (posición de cada control según el tamaño, stick limitado al círculo unitario) y `TouchTracker` (qué dedo tiene qué control). La muestra `GamepadActivity`.
 - El estado se publica en un `StateFlow<GamepadState>`.
-- `UdpSender`: corrutina en `Dispatchers.IO` que cada ~16 ms toma el último estado, lo codifica con `:protocol` y lo manda con `DatagramSocket`. No encola estados.
-- Pantalla: landscape, fullscreen inmersivo, `FLAG_KEEP_SCREEN_ON`, vibración corta al apretar.
-- Al salir de la app o ir a segundo plano, mandar un estado neutro y parar el envío.
+- `UdpSender`: corrutina en `Dispatchers.IO` que cada ~16 ms toma el último estado, lo codifica con `:protocol` y lo manda con `DatagramSocket`. No encola estados. Cada `run()` usa un socket nuevo y empieza `seq` en 0: el servidor lo ve como un cliente nuevo y lo acepta cuando vence el anterior. Los errores de envío se ignoran (el próximo paquete reintenta). Se testea contra un socket local.
+- Pantalla del gamepad: landscape (`sensorLandscape`) y fullscreen inmersivo. `FLAG_KEEP_SCREEN_ON` y la vibración quedan para M4.
+- `GamepadActivity` corre el `UdpSender` entre `onResume` y `onPause`: al salir de la app o ir a segundo plano, cancela el envío y el sender manda un estado neutro antes de cerrar el socket.
 
 ## Convenciones
 
@@ -126,6 +126,7 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 - **`ByteBuffer` en `:protocol`**: usar solo los accesos absolutos (`getInt(index)`, `put(index, b)`). Los métodos de `Buffer` (`position`, `flip`, `limit`...) compilados con JDK 9+ apuntan a sobrecargas que las versiones viejas de Android pueden no tener.
 - **Timeout**: 250 ms sin paquetes válidos → soltar todo y centrar ejes. Nunca dejar un botón trabado.
 - **Emulador de Android**: la PC host es `10.0.2.2`, no `127.0.0.1`.
+- **Red local en Android 17**: con `targetSdk 37`, mandar paquetes a la LAN requiere el permiso `ACCESS_LOCAL_NETWORK`, que se pide en tiempo de ejecución (el sistema lo muestra como "dispositivos cercanos"). Sin él, `send` falla con `EPERM` y no llega nada, también en el emulador.
 - **Firewall**: si `ufw` está activo, `sudo ufw allow 7654/udp`.
 - **Reconocimiento en juegos**: el servidor imita un control de Xbox 360 (IDs y códigos de `xpad`) para que SDL/Steam lo mapeen solo.
 
@@ -134,7 +135,7 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 - [x] M0: proyecto Android Studio, repo, protocolo y documentación.
 - [x] M1: módulo `:protocol` con tests (incluye el vector de prueba). CI con GitHub Actions como check obligatorio de `main` y CodeQL para Kotlin y Actions.
 - [x] M2: `:server` funcionando con `runFakeClient`. Verificado con `evtest` y `jstest-gtk`.
-- [ ] M3: `:app` MVP: campo IP/puerto, stick izquierdo, A/B/X/Y y Start, envío a 60 Hz.
+- [x] M3: `:app` MVP: campo IP/puerto, stick izquierdo, A/B/X/Y y Start, envío a 60 Hz.
 - [ ] M4: layout completo (dos sticks, gatillos, D-pad, bumpers), vibración, pantalla siempre encendida.
 - [ ] M5: descubrimiento automático de la PC en la red local.
 - [ ] M6: layouts configurables.

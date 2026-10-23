@@ -68,9 +68,21 @@ jstest-gtk    # ejes y botones en una ventana
 
 ## App Android
 
-Abrí el proyecto en Android Studio y corré el módulo `app` en el celular. En la app, ingresá la IP local de la PC (`hostname -I`) y el puerto.
+Necesita Android 8.0 o más nuevo. Para instalarla, abrí el proyecto en Android Studio y corré el módulo `app`, o, con el celular conectado por USB o depuración inalámbrica:
 
-La PC y el celular tienen que estar en la misma red Wi-Fi.
+```bash
+./gradlew :app:installDebug
+```
+
+Con el servidor corriendo:
+
+1. En la app, ingresá la IP local de la PC (`hostname -I`) y el puerto, y tocá **Conectar**.
+2. En Android 17 o más nuevo, la app pide permiso para encontrar y conectarse a **dispositivos cercanos**: hace falta para mandar paquetes a la PC por la red local. Si lo negaste, habilitalo en los ajustes de la app.
+3. Se abre el control en pantalla completa y horizontal: el stick a la izquierda, A/B/X/Y a la derecha y Start arriba. Se pueden usar varios dedos a la vez.
+
+La app manda el estado 60 veces por segundo mientras el control está en pantalla. Si salís de la app o la mandás a segundo plano, suelta todo y deja de mandar.
+
+La PC y el celular tienen que estar en la misma red Wi-Fi. Para probar en el emulador de Android, la IP de la PC es `10.0.2.2`.
 
 ## Protocolo
 

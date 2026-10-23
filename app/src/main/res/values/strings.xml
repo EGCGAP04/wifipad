@@ -7,4 +7,6 @@
     <string name="connect">Connect</string>
     <string name="error_host">Enter an IPv4 address, like 192.168.0.10</string>
     <string name="error_port">Enter a port between 1 and 65535</string>
+    <string name="local_network_denied">wifipad needs access to devices on your local network to send the controls to your PC. You can allow it in the app settings.</string>
+    <string name="open_settings">Settings</string>
 </resources>
