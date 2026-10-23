@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -38,9 +39,14 @@ class GamepadView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         isFakeBoldText = true
     }
 
+    /** The outline of the D-pad cross, built with the layout instead of on every frame. */
+    private val dpadOutline = Path()
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         // Fingers on the old layout do not match the new one: start over.
-        tracker = TouchTracker(GamepadLayout(w.toFloat(), h.toFloat()))
+        val layout = GamepadLayout(w.toFloat(), h.toFloat())
+        tracker = TouchTracker(layout)
+        buildCross(layout.dpad)
         publish()
     }
 
@@ -81,6 +87,7 @@ class GamepadView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         val state = mutableState.value
         drawStick(canvas, layout.leftStick, state.lx, state.ly, state.isPressed(GamepadState.L3))
         drawStick(canvas, layout.rightStick, state.rx, state.ry, state.isPressed(GamepadState.R3))
+        drawDPad(canvas, layout.dpad, state)
         for (button in layout.buttons) drawButton(canvas, button, state.isPressed(button.button))
     }
 
@@ -96,6 +103,42 @@ class GamepadView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         val knobY = stick.y + axisY.toFloat() / GamepadState.AXIS_MAX * stick.radius
         fill.color = NEUTRAL_COLOR
         canvas.drawCircle(knobX, knobY, stick.radius * 0.4f, fill)
+    }
+
+    /**
+     * A plus sign that fits in the D-pad circle: each arm is [ARM_WIDTH] of the radius wide and
+     * reaches [ARM_LENGTH] of it from the center.
+     */
+    private fun buildCross(dpad: DPad) {
+        val a = dpad.radius * ARM_WIDTH / 2
+        val l = dpad.radius * ARM_LENGTH
+        dpadOutline.reset()
+        // (x, y) pairs, clockwise from the top left corner of the up arm.
+        val corners = floatArrayOf(
+            -a, -l, a, -l, a, -a, // up
+            l, -a, l, a, a, a, // right
+            a, l, -a, l, -a, a, // down
+            -l, a, -l, -a, -a, -a, // left
+        )
+        dpadOutline.moveTo(dpad.x + corners[0], dpad.y + corners[1])
+        for (i in 2 until corners.size step 2) {
+            dpadOutline.lineTo(dpad.x + corners[i], dpad.y + corners[i + 1])
+        }
+        dpadOutline.close()
+    }
+
+    private fun drawDPad(canvas: Canvas, dpad: DPad, state: GamepadState) {
+        val a = dpad.radius * ARM_WIDTH / 2
+        val l = dpad.radius * ARM_LENGTH
+        val x = dpad.x
+        val y = dpad.y
+        fill.color = NEUTRAL_COLOR
+        if (state.isPressed(GamepadState.DPAD_UP)) canvas.drawRect(x - a, y - l, x + a, y - a, fill)
+        if (state.isPressed(GamepadState.DPAD_DOWN)) canvas.drawRect(x - a, y + a, x + a, y + l, fill)
+        if (state.isPressed(GamepadState.DPAD_LEFT)) canvas.drawRect(x - l, y - a, x - a, y + a, fill)
+        if (state.isPressed(GamepadState.DPAD_RIGHT)) canvas.drawRect(x + a, y - a, x + l, y + a, fill)
+        outline.color = NEUTRAL_COLOR
+        canvas.drawPath(dpadOutline, outline)
     }
 
     private fun drawButton(canvas: Canvas, button: Button, pressed: Boolean) {
@@ -117,6 +160,10 @@ class GamepadView @JvmOverloads constructor(context: Context, attrs: AttributeSe
     private companion object {
         val NEUTRAL_COLOR = Color.rgb(0x9e, 0x9e, 0x9e)
         val CLICKED_STICK_COLOR = Color.argb(0x60, 0x9e, 0x9e, 0x9e)
+
+        // The corner of an arm is at (ARM_LENGTH, ARM_WIDTH / 2): √(0.95² + 0.3²) < 1, inside the circle.
+        const val ARM_WIDTH = 0.6f
+        const val ARM_LENGTH = 0.95f
 
         // Xbox colors.
         fun colorOf(button: Int) = when (button) {

@@ -1,7 +1,9 @@
 package io.github.egcgap04.wifipad.app
 
 import io.github.egcgap04.wifipad.protocol.GamepadState
+import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.sin
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -58,11 +60,21 @@ class GamepadLayoutTest {
     }
 
     @Test
+    fun `the D-pad is below the left stick, left of the right stick`() {
+        val layout = GamepadLayout(2400f, 1080f)
+        val dpad = layout.dpad
+        assertTrue(layout.leftStick.x < dpad.x && dpad.x < layout.rightStick.x)
+        assertTrue(dpad.y > layout.leftStick.y)
+        assertEquals(dpad.y, layout.rightStick.y)
+    }
+
+    @Test
     fun `finds the control under a touch`() {
         val layout = GamepadLayout(2400f, 1080f)
         val a = layout.buttons.single { it.button == GamepadState.A }
         assertSame(layout.leftStick, layout.controlAt(layout.leftStick.x, layout.leftStick.y))
         assertSame(layout.rightStick, layout.controlAt(layout.rightStick.x, layout.rightStick.y))
+        assertSame(layout.dpad, layout.controlAt(layout.dpad.x, layout.dpad.y))
         assertSame(a, layout.controlAt(a.x + a.radius, a.y))
         assertSame(a, layout.controlAt(a.x, a.y + a.hitRadius * 0.99f), "a bit outside what is drawn")
         assertNull(layout.controlAt(0f, 0f))
@@ -88,5 +100,46 @@ class GamepadLayoutTest {
         assertTrue(hypot(x.toDouble(), y.toDouble()) <= GamepadState.AXIS_MAX)
     }
 
+    @Test
+    fun `the D-pad picks a direction by the angle`() {
+        val dpad = DPad(500f, 500f, 100f)
+        assertEquals(GamepadState.DPAD_UP, dpad.directionsAt(500f, 420f))
+        assertEquals(GamepadState.DPAD_DOWN, dpad.directionsAt(500f, 580f))
+        assertEquals(GamepadState.DPAD_LEFT, dpad.directionsAt(420f, 500f))
+        assertEquals(GamepadState.DPAD_RIGHT, dpad.directionsAt(580f, 500f))
+        assertEquals(GamepadState.DPAD_UP or GamepadState.DPAD_RIGHT, dpad.directionsAt(560f, 440f))
+        assertEquals(GamepadState.DPAD_DOWN or GamepadState.DPAD_LEFT, dpad.directionsAt(440f, 560f))
+        assertEquals(GamepadState.DPAD_RIGHT, dpad.directionsAt(580f, 470f), "20° up is still right")
+        assertEquals(GamepadState.DPAD_RIGHT or GamepadState.DPAD_UP, dpad.directionsAt(580f, 460f), "26° up is diagonal")
+        assertEquals(GamepadState.DPAD_LEFT, dpad.directionsAt(0f, 500f), "beyond the D-pad, as the finger slides off")
+    }
+
+    @Test
+    fun `the D-pad has a dead zone in the center`() {
+        val dpad = DPad(500f, 500f, 100f)
+        assertEquals(0, dpad.directionsAt(500f, 500f))
+        assertEquals(0, dpad.directionsAt(524f, 500f))
+        assertEquals(GamepadState.DPAD_RIGHT, dpad.directionsAt(526f, 500f))
+    }
+
+    @Test
+    fun `the D-pad never presses opposite directions`() {
+        val dpad = DPad(500f, 500f, 100f)
+        val seen = HashSet<Int>()
+        for (degrees in 0 until 360) {
+            val angle = Math.toRadians(degrees.toDouble())
+            val pressed = dpad.directionsAt(500f + 80f * cos(angle).toFloat(), 500f - 80f * sin(angle).toFloat())
+            assertTrue(pressed != 0, "$degrees°")
+            assertTrue(pressed and UP_DOWN != UP_DOWN && pressed and LEFT_RIGHT != LEFT_RIGHT, "$degrees°")
+            seen += pressed
+        }
+        assertEquals(8, seen.size, "4 directions and 4 diagonals")
+    }
+
     private fun Stick.axes(x: Float, y: Float) = axisX(x, y) to axisY(x, y)
+
+    private companion object {
+        const val UP_DOWN = GamepadState.DPAD_UP or GamepadState.DPAD_DOWN
+        const val LEFT_RIGHT = GamepadState.DPAD_LEFT or GamepadState.DPAD_RIGHT
+    }
 }
