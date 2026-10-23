@@ -79,13 +79,22 @@ class DPad(x: Float, y: Float, radius: Float) : Control(x, y, radius) {
 class Button(x: Float, y: Float, radius: Float, val button: Int, val label: String) :
     Control(x, y, radius)
 
+/**
+ * A trigger: the screen does not measure pressure, so it is either released (0) or fully pressed
+ * (`TRIGGER_MAX`).
+ */
+class Trigger(x: Float, y: Float, radius: Float, val isLeft: Boolean, val label: String) :
+    Control(x, y, radius)
+
 /** Where each control goes on a screen of [width] × [height] pixels. */
 class GamepadLayout(val width: Float, val height: Float) {
     // Sizes depend on `unit`, the side of the square that fits in each half of the screen, and
     // positions on the screen size. It also works in portrait, just smaller. As on an Xbox gamepad,
-    // the left stick sits above the D-pad and the right stick below the face buttons. Free space
-    // left for later: the bumpers and triggers in the top corners.
+    // the left stick sits above the D-pad and the right stick below the face buttons. The triggers
+    // go in the top corners with the bumpers next to them, and Back, Guide and Start in the middle.
     private val unit = min(width / 2, height)
+    private val shoulderY = height * 0.12f
+    private val shoulderRadius = unit * 0.07f
 
     val leftStick = Stick(width * 0.17f, height * 0.5f, unit * 0.19f, GamepadState.L3)
     val rightStick = Stick(width * 0.66f, height * 0.78f, unit * 0.19f, GamepadState.R3)
@@ -102,13 +111,28 @@ class GamepadLayout(val width: Float, val height: Float) {
             Button(x, y + gap, radius, GamepadState.A, "A"),
             Button(x - gap, y, radius, GamepadState.X, "X"),
             Button(x + gap, y, radius, GamepadState.B, "B"),
-            Button(width * 0.5f, height * 0.2f, unit * 0.08f, GamepadState.START, "≡"),
-        )
+            Button(width * 0.2f, shoulderY, shoulderRadius, GamepadState.LB, "LB"),
+            Button(width * 0.8f, shoulderY, shoulderRadius, GamepadState.RB, "RB"),
+        ) + run {
+            // Smaller and apart from each other, so they are not pressed by accident.
+            val centerY = height * 0.2f
+            val centerRadius = unit * 0.05f
+            listOf(
+                Button(width * 0.42f, centerY, centerRadius, GamepadState.BACK, "⧉"),
+                Button(width * 0.5f, centerY, centerRadius, GamepadState.GUIDE, "⌂"),
+                Button(width * 0.58f, centerY, centerRadius, GamepadState.START, "≡"),
+            )
+        }
     }
+
+    val triggers = listOf(
+        Trigger(width * 0.07f, shoulderY, shoulderRadius, isLeft = true, "LT"),
+        Trigger(width * 0.93f, shoulderY, shoulderRadius, isLeft = false, "RT"),
+    )
 
     val sticks = listOf(leftStick, rightStick)
 
-    val controls: List<Control> = sticks + dpad + buttons
+    val controls: List<Control> = sticks + dpad + triggers + buttons
 
     /** The control under a touch at ([x], [y]), if any. Hit areas do not overlap. */
     fun controlAt(x: Float, y: Float): Control? = controls.firstOrNull { it.hits(x, y) }

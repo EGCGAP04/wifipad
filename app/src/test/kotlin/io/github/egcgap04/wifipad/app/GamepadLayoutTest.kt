@@ -69,6 +69,42 @@ class GamepadLayoutTest {
     }
 
     @Test
+    fun `triggers are in the top corners with the bumpers next to them`() {
+        val layout = GamepadLayout(2400f, 1080f)
+        val (lt, rt) = layout.triggers
+        val lb = layout.buttons.single { it.button == GamepadState.LB }
+        val rb = layout.buttons.single { it.button == GamepadState.RB }
+        assertTrue(lt.isLeft && !rt.isLeft)
+        assertTrue(lt.x < lb.x && lb.x < layout.width / 2 && layout.width / 2 < rb.x && rb.x < rt.x)
+        for (control in listOf(lt, lb, rb, rt)) {
+            assertTrue(layout.sticks.all { control.y < it.y - it.radius }, "above the sticks")
+            assertTrue(layout.buttons.filter { it.label.length == 1 }.all { control.y < it.y }, "above the other buttons")
+        }
+    }
+
+    @Test
+    fun `Back, Guide and Start are in the middle, smaller than the face buttons`() {
+        val layout = GamepadLayout(2400f, 1080f)
+        val (back, guide, start) = listOf(GamepadState.BACK, GamepadState.GUIDE, GamepadState.START)
+            .map { bit -> layout.buttons.single { it.button == bit } }
+        val a = layout.buttons.single { it.button == GamepadState.A }
+        assertTrue(back.x < guide.x && guide.x < start.x)
+        assertEquals(layout.width / 2, guide.x)
+        assertTrue(back.y == guide.y && guide.y == start.y)
+        assertTrue(listOf(back, guide, start).all { it.radius < a.radius })
+    }
+
+    @Test
+    fun `every protocol button has a control`() {
+        val layout = GamepadLayout(2400f, 1080f)
+        val sticks = layout.sticks.fold(0) { bits, stick -> bits or stick.click }
+        val dpad = GamepadState.DPAD_UP or GamepadState.DPAD_DOWN or GamepadState.DPAD_LEFT or GamepadState.DPAD_RIGHT
+        val all = layout.buttons.fold(sticks or dpad) { bits, button -> bits or button.button }
+        assertEquals(0x7fff, all, "bits 0 to 14; bit 15 is reserved")
+        assertEquals(layout.buttons.size, layout.buttons.map { it.button }.toSet().size, "no repeats")
+    }
+
+    @Test
     fun `finds the control under a touch`() {
         val layout = GamepadLayout(2400f, 1080f)
         val a = layout.buttons.single { it.button == GamepadState.A }
