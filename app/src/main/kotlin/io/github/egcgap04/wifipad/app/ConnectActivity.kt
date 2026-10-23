@@ -1,8 +1,14 @@
 package io.github.egcgap04.wifipad.app
 
+import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
@@ -41,6 +47,47 @@ class ConnectActivity : Activity() {
         if (host == null || port == null) return
 
         store.save(ConnectionSettings(host, port))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN &&
+            checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Android 17 blocks traffic to the local network without it: sends fail with EPERM.
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_LOCAL_NETWORK), REQUEST_LOCAL_NETWORK)
+        } else {
+            openGamepad()
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        // An empty result means the request was interrupted, not denied.
+        if (requestCode != REQUEST_LOCAL_NETWORK || grantResults.isEmpty()) return
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            openGamepad()
+        } else {
+            // After two denials Android stops asking, so point to the app settings.
+            AlertDialog.Builder(this)
+                .setMessage(R.string.local_network_denied)
+                .setPositiveButton(R.string.open_settings) { _, _ ->
+                    startActivity(
+                        Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.fromParts("package", packageName, null),
+                        ),
+                    )
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+    }
+
+    private fun openGamepad() {
         startActivity(Intent(this, GamepadActivity::class.java))
+    }
+
+    private companion object {
+        const val REQUEST_LOCAL_NETWORK = 1
     }
 }
