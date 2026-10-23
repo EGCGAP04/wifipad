@@ -13,6 +13,7 @@ class TouchTrackerTest {
     private val a = button(GamepadState.A)
     private val b = button(GamepadState.B)
     private val start = button(GamepadState.START)
+    private val dpad = layout.dpad
 
     /** Touches are a second apart unless a test says otherwise, so they are never double taps. */
     private var time = 0L
@@ -175,9 +176,51 @@ class TouchTrackerTest {
     }
 
     @Test
+    fun `the D-pad follows its finger`() {
+        tracker.down(0, dpad.x, dpad.y - dpad.radius / 2)
+        assertEquals(GamepadState.DPAD_UP, tracker.state.buttons)
+        tracker.move(0, dpad.x + dpad.radius, dpad.y - dpad.radius)
+        assertEquals(GamepadState.DPAD_UP or GamepadState.DPAD_RIGHT, tracker.state.buttons, "slides to a diagonal")
+        tracker.move(0, dpad.x + dpad.radius * 3, dpad.y)
+        assertEquals(GamepadState.DPAD_RIGHT, tracker.state.buttons, "keeps following outside the D-pad")
+        tracker.move(0, dpad.x, dpad.y)
+        assertEquals(0, tracker.state.buttons, "back to the center")
+        tracker.move(0, dpad.x, dpad.y + dpad.radius)
+        tracker.up(0)
+        assertEquals(GamepadState.NEUTRAL, tracker.state)
+    }
+
+    @Test
+    fun `only one finger holds the D-pad`() {
+        tracker.down(0, dpad.x - dpad.radius / 2, dpad.y)
+        tracker.down(1, dpad.x + dpad.radius / 2, dpad.y)
+        tracker.move(1, dpad.x, dpad.y + dpad.radius)
+        assertEquals(GamepadState.DPAD_LEFT, tracker.state.buttons)
+        tracker.up(1)
+        assertEquals(GamepadState.DPAD_LEFT, tracker.state.buttons, "the second finger never held it")
+    }
+
+    @Test
+    fun `D-pad, sticks and buttons at the same time`() {
+        tracker.down(0, dpad.x, dpad.y + dpad.radius / 2)
+        tracker.down(1, a)
+        tracker.down(2, left.x + left.radius, left.y)
+        tracker.move(0, dpad.x - dpad.radius / 2, dpad.y)
+        assertEquals(
+            GamepadState(buttons = GamepadState.DPAD_LEFT or GamepadState.A, lx = GamepadState.AXIS_MAX),
+            tracker.state,
+        )
+        tracker.up(1)
+        tracker.up(0)
+        assertEquals(GamepadState(lx = GamepadState.AXIS_MAX), tracker.state)
+    }
+
+    @Test
     fun `cancel releases everything`() {
         tracker.down(0, left.x + left.radius, left.y)
         tracker.down(1, a)
+        tracker.down(2, dpad)
+        tracker.move(2, dpad.x, dpad.y - dpad.radius)
         tracker.cancel()
         assertEquals(GamepadState.NEUTRAL, tracker.state)
         tracker.move(0, left.x, left.y + left.radius)
