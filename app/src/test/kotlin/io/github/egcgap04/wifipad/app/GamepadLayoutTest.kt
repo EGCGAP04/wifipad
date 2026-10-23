@@ -9,7 +9,7 @@ import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class GamepadLayoutTest {
-    private val sizes = listOf(2400f to 1080f, 1080f to 2400f, 1920f to 1080f, 3200f to 1000f, 1280f to 800f)
+    private val sizes = listOf(2400f to 1080f, 2340f to 1080f, 1080f to 2400f, 1920f to 1080f, 3200f to 1000f, 1280f to 800f)
 
     @Test
     fun `controls are drawn inside the view`() {
@@ -41,14 +41,28 @@ class GamepadLayoutTest {
         val (y, a, x, b) = listOf(GamepadState.Y, GamepadState.A, GamepadState.X, GamepadState.B)
             .map { bit -> layout.buttons.single { it.button == bit } }
         assertTrue(y.y < x.y && x.y < a.y && x.x < y.x && y.x < b.x)
-        assertTrue(layout.stick.x < x.x)
+    }
+
+    @Test
+    fun `sticks are placed like on an Xbox gamepad`() {
+        val layout = GamepadLayout(2400f, 1080f)
+        val left = layout.leftStick
+        val right = layout.rightStick
+        val x = layout.buttons.single { it.button == GamepadState.X }
+        assertTrue(left.x < right.x && right.x < x.x, "left stick, right stick, face buttons")
+        assertTrue(left.y < right.y, "the right stick is lower")
+        assertTrue(right.x > layout.width / 2, "the right stick is on the right half")
+        assertEquals(GamepadState.L3, left.click)
+        assertEquals(GamepadState.R3, right.click)
+        assertEquals(left.radius, right.radius)
     }
 
     @Test
     fun `finds the control under a touch`() {
         val layout = GamepadLayout(2400f, 1080f)
         val a = layout.buttons.single { it.button == GamepadState.A }
-        assertSame(layout.stick, layout.controlAt(layout.stick.x, layout.stick.y))
+        assertSame(layout.leftStick, layout.controlAt(layout.leftStick.x, layout.leftStick.y))
+        assertSame(layout.rightStick, layout.controlAt(layout.rightStick.x, layout.rightStick.y))
         assertSame(a, layout.controlAt(a.x + a.radius, a.y))
         assertSame(a, layout.controlAt(a.x, a.y + a.hitRadius * 0.99f), "a bit outside what is drawn")
         assertNull(layout.controlAt(0f, 0f))
@@ -56,7 +70,7 @@ class GamepadLayoutTest {
 
     @Test
     fun `stick axes follow the finger with up negative`() {
-        val stick = Stick(500f, 500f, 100f)
+        val stick = Stick(500f, 500f, 100f, GamepadState.L3)
         assertEquals(0 to 0, stick.axes(500f, 500f))
         assertEquals(GamepadState.AXIS_MAX to 0, stick.axes(600f, 500f))
         assertEquals(-GamepadState.AXIS_MAX to 0, stick.axes(400f, 500f))
@@ -66,7 +80,7 @@ class GamepadLayoutTest {
 
     @Test
     fun `stick axes are clamped to the unit circle`() {
-        val stick = Stick(500f, 500f, 100f)
+        val stick = Stick(500f, 500f, 100f, GamepadState.L3)
         assertEquals(GamepadState.AXIS_MAX to 0, stick.axes(900f, 500f))
         val (x, y) = stick.axes(800f, 200f)
         assertEquals(23169, x)

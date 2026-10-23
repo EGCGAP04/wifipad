@@ -49,7 +49,7 @@ class GamepadView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                 val i = event.actionIndex
-                tracker.down(event.getPointerId(i), event.getX(i), event.getY(i))
+                tracker.down(event.getPointerId(i), event.getX(i), event.getY(i), event.eventTime)
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) performClick()
             }
             // A move event carries every pointer, not just the one that moved.
@@ -79,16 +79,21 @@ class GamepadView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         canvas.drawColor(background)
         val layout = tracker?.layout ?: return
         val state = mutableState.value
-        drawStick(canvas, layout.stick, state)
+        drawStick(canvas, layout.leftStick, state.lx, state.ly, state.isPressed(GamepadState.L3))
+        drawStick(canvas, layout.rightStick, state.rx, state.ry, state.isPressed(GamepadState.R3))
         for (button in layout.buttons) drawButton(canvas, button, state.isPressed(button.button))
     }
 
-    private fun drawStick(canvas: Canvas, stick: Stick, state: GamepadState) {
+    private fun drawStick(canvas: Canvas, stick: Stick, axisX: Int, axisY: Int, clicked: Boolean) {
+        if (clicked) {
+            fill.color = CLICKED_STICK_COLOR
+            canvas.drawCircle(stick.x, stick.y, stick.radius, fill)
+        }
         outline.color = NEUTRAL_COLOR
         canvas.drawCircle(stick.x, stick.y, stick.radius, outline)
         // The knob center travels within the base circle, like the axes within the unit circle.
-        val knobX = stick.x + state.lx.toFloat() / GamepadState.AXIS_MAX * stick.radius
-        val knobY = stick.y + state.ly.toFloat() / GamepadState.AXIS_MAX * stick.radius
+        val knobX = stick.x + axisX.toFloat() / GamepadState.AXIS_MAX * stick.radius
+        val knobY = stick.y + axisY.toFloat() / GamepadState.AXIS_MAX * stick.radius
         fill.color = NEUTRAL_COLOR
         canvas.drawCircle(knobX, knobY, stick.radius * 0.4f, fill)
     }
@@ -111,6 +116,7 @@ class GamepadView @JvmOverloads constructor(context: Context, attrs: AttributeSe
 
     private companion object {
         val NEUTRAL_COLOR = Color.rgb(0x9e, 0x9e, 0x9e)
+        val CLICKED_STICK_COLOR = Color.argb(0x60, 0x9e, 0x9e, 0x9e)
 
         // Xbox colors.
         fun colorOf(button: Int) = when (button) {

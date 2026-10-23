@@ -18,7 +18,8 @@ sealed class Control(val x: Float, val y: Float, val radius: Float) {
     }
 }
 
-class Stick(x: Float, y: Float, radius: Float) : Control(x, y, radius) {
+/** A stick; [click] is the button it presses when pushed in (`L3` or `R3`). */
+class Stick(x: Float, y: Float, radius: Float, val click: Int) : Control(x, y, radius) {
     /**
      * The axis value for a finger at [px] on the X axis (or [py] on Y), with the offset from the
      * center clamped to the unit circle. Up is negative, as on screen and in the protocol.
@@ -41,17 +42,21 @@ class Button(x: Float, y: Float, radius: Float, val button: Int, val label: Stri
 
 /** Where each control goes on a screen of [width] × [height] pixels. */
 class GamepadLayout(val width: Float, val height: Float) {
-    // Each half of the screen gets a square of side `unit`: the stick on the left, the face
-    // buttons on the right. It also works in portrait, just smaller.
+    // Sizes depend on `unit`, the side of the square that fits in each half of the screen, and
+    // positions on the screen size. It also works in portrait, just smaller. As on an Xbox gamepad,
+    // the left stick sits above the D-pad and the right stick below the face buttons. Free space
+    // left for later: the D-pad at about (0.34, 0.78), and the bumpers and triggers in the top
+    // corners.
     private val unit = min(width / 2, height)
 
-    val stick = Stick(width * 0.25f, height * 0.55f, unit * 0.3f)
+    val leftStick = Stick(width * 0.17f, height * 0.5f, unit * 0.19f, GamepadState.L3)
+    val rightStick = Stick(width * 0.66f, height * 0.78f, unit * 0.19f, GamepadState.R3)
 
     val buttons: List<Button> = run {
-        val x = width * 0.75f
-        val y = height * 0.55f
-        val gap = unit * 0.22f
-        val radius = unit * 0.11f
+        val x = width * 0.83f
+        val y = height * 0.5f
+        val gap = unit * 0.15f
+        val radius = unit * 0.07f
         listOf(
             // Xbox positions: Y on top, A at the bottom, X on the left, B on the right.
             Button(x, y - gap, radius, GamepadState.Y, "Y"),
@@ -62,7 +67,9 @@ class GamepadLayout(val width: Float, val height: Float) {
         )
     }
 
-    val controls: List<Control> = listOf(stick) + buttons
+    val sticks = listOf(leftStick, rightStick)
+
+    val controls: List<Control> = sticks + buttons
 
     /** The control under a touch at ([x], [y]), if any. Hit areas do not overlap. */
     fun controlAt(x: Float, y: Float): Control? = controls.firstOrNull { it.hits(x, y) }
