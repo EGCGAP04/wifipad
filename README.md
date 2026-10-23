@@ -84,6 +84,13 @@ La app manda el estado 60 veces por segundo mientras el control está en pantall
 
 La PC y el celular tienen que estar en la misma red Wi-Fi. Para probar en el emulador de Android, la IP de la PC es `10.0.2.2`.
 
+Las redes de invitados o públicas (de bares, facultades u oficinas) suelen aislar a los dispositivos entre sí: los dos tienen internet, pero el celular no llega a la PC y el servidor no recibe nada. Para comprobarlo, hacé ping desde la PC a la IP del celular (está en los ajustes del celular, dentro de Acerca del teléfono). Si no responde, usá otra red:
+
+- **Hotspot del celular**: conectá la PC a la zona Wi-Fi del celular.
+- **Anclaje USB**: con el celular conectado por cable, activá el anclaje USB en los ajustes de red del celular (en Samsung: Conexiones → Zona Wi-Fi y Anclaje).
+
+En los dos casos la PC navega con los datos del celular y su IP cambia: volvé a mirarla con `hostname -I`.
+
 ## Protocolo
 
 Ver [`docs/protocol.md`](docs/protocol.md).
