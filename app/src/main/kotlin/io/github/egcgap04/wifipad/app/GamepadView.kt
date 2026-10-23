@@ -88,7 +88,13 @@ class GamepadView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         drawStick(canvas, layout.leftStick, state.lx, state.ly, state.isPressed(GamepadState.L3))
         drawStick(canvas, layout.rightStick, state.rx, state.ry, state.isPressed(GamepadState.R3))
         drawDPad(canvas, layout.dpad, state)
-        for (button in layout.buttons) drawButton(canvas, button, state.isPressed(button.button))
+        for (button in layout.buttons) {
+            drawRound(canvas, button, button.label, colorOf(button.button), state.isPressed(button.button))
+        }
+        for (trigger in layout.triggers) {
+            val pressed = (if (trigger.isLeft) state.lt else state.rt) > 0
+            drawRound(canvas, trigger, trigger.label, NEUTRAL_COLOR, pressed)
+        }
     }
 
     private fun drawStick(canvas: Canvas, stick: Stick, axisX: Int, axisY: Int, clicked: Boolean) {
@@ -141,20 +147,21 @@ class GamepadView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         canvas.drawPath(dpadOutline, outline)
     }
 
-    private fun drawButton(canvas: Canvas, button: Button, pressed: Boolean) {
-        val color = colorOf(button.button)
+    /** A button or a trigger: a circle with a label, filled while pressed. */
+    private fun drawRound(canvas: Canvas, control: Control, label: String, color: Int, pressed: Boolean) {
         if (pressed) {
             fill.color = color
-            canvas.drawCircle(button.x, button.y, button.radius, fill)
+            canvas.drawCircle(control.x, control.y, control.radius, fill)
         }
         outline.color = color
-        canvas.drawCircle(button.x, button.y, button.radius, outline)
+        canvas.drawCircle(control.x, control.y, control.radius, outline)
 
         text.color = if (pressed) background else color
-        text.textSize = button.radius
+        // Two letters (LB, RT...) need a smaller font to fit.
+        text.textSize = control.radius * if (label.length > 1) 0.75f else 1f
         // drawText takes the baseline: shift it so the text is centered vertically.
-        val baseline = button.y - (text.ascent() + text.descent()) / 2
-        canvas.drawText(button.label, button.x, baseline, text)
+        val baseline = control.y - (text.ascent() + text.descent()) / 2
+        canvas.drawText(label, control.x, baseline, text)
     }
 
     private companion object {

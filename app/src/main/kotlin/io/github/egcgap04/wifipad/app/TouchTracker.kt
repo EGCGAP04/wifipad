@@ -47,7 +47,7 @@ class TouchTracker(val layout: GamepadLayout) {
                 if (control in directions) return
                 directions[control] = control.directionsAt(x, y)
             }
-            is Button -> Unit
+            is Button, is Trigger -> Unit
         }
         grabbed[pointerId] = control
         update()
@@ -57,7 +57,7 @@ class TouchTracker(val layout: GamepadLayout) {
         when (val control = grabbed[pointerId]) {
             is Stick -> moveStick(control, x, y)
             is DPad -> directions[control] = control.directionsAt(x, y)
-            is Button, null -> return
+            is Button, is Trigger, null -> return
         }
         update()
     }
@@ -69,7 +69,7 @@ class TouchTracker(val layout: GamepadLayout) {
                 clicked -= control
             }
             is DPad -> directions -= control
-            is Button -> Unit
+            is Button, is Trigger -> Unit
         }
         update()
     }
@@ -90,14 +90,20 @@ class TouchTracker(val layout: GamepadLayout) {
 
     private fun update() {
         var buttons = 0
+        var lt = 0
+        var rt = 0
         for (control in grabbed.values) {
-            if (control is Button) buttons = buttons or control.button
+            when (control) {
+                is Button -> buttons = buttons or control.button
+                is Trigger -> if (control.isLeft) lt = GamepadState.TRIGGER_MAX else rt = GamepadState.TRIGGER_MAX
+                is Stick, is DPad -> Unit
+            }
         }
         for (stick in clicked) buttons = buttons or stick.click
         for (pressed in directions.values) buttons = buttons or pressed
         val (lx, ly) = axes[layout.leftStick] ?: CENTER
         val (rx, ry) = axes[layout.rightStick] ?: CENTER
-        state = GamepadState(buttons = buttons, lx = lx, ly = ly, rx = rx, ry = ry)
+        state = GamepadState(buttons = buttons, lx = lx, ly = ly, rx = rx, ry = ry, lt = lt, rt = rt)
     }
 
     companion object {

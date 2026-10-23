@@ -14,6 +14,8 @@ class TouchTrackerTest {
     private val b = button(GamepadState.B)
     private val start = button(GamepadState.START)
     private val dpad = layout.dpad
+    private val lt = layout.triggers.single { it.isLeft }
+    private val rt = layout.triggers.single { !it.isLeft }
 
     /** Touches are a second apart unless a test says otherwise, so they are never double taps. */
     private var time = 0L
@@ -216,11 +218,52 @@ class TouchTrackerTest {
     }
 
     @Test
+    fun `triggers are fully pressed or released`() {
+        tracker.down(0, lt)
+        assertEquals(GamepadState(lt = GamepadState.TRIGGER_MAX), tracker.state)
+        tracker.down(1, rt)
+        tracker.move(1, 0f, 0f)
+        assertEquals(GamepadState(lt = GamepadState.TRIGGER_MAX, rt = GamepadState.TRIGGER_MAX), tracker.state)
+        tracker.up(0)
+        assertEquals(GamepadState(rt = GamepadState.TRIGGER_MAX), tracker.state)
+        tracker.up(1)
+        assertEquals(GamepadState.NEUTRAL, tracker.state)
+    }
+
+    @Test
+    fun `bumpers and the middle buttons`() {
+        val pressed = listOf(GamepadState.LB, GamepadState.RB, GamepadState.BACK, GamepadState.GUIDE, GamepadState.START)
+        for ((id, bit) in pressed.withIndex()) tracker.down(id, button(bit))
+        assertEquals(pressed.reduce(Int::or), tracker.state.buttons)
+        for (id in pressed.indices) tracker.up(id)
+        assertEquals(GamepadState.NEUTRAL, tracker.state)
+    }
+
+    @Test
+    fun `a trigger and a bumper with both sticks`() {
+        tracker.down(0, rt)
+        tracker.down(1, button(GamepadState.LB))
+        tracker.down(2, left.x, left.y - left.radius)
+        tracker.down(3, right)
+        tracker.move(3, right.x + right.radius * 2, right.y)
+        assertEquals(
+            GamepadState(
+                buttons = GamepadState.LB,
+                ly = -GamepadState.AXIS_MAX,
+                rx = GamepadState.AXIS_MAX,
+                rt = GamepadState.TRIGGER_MAX,
+            ),
+            tracker.state,
+        )
+    }
+
+    @Test
     fun `cancel releases everything`() {
         tracker.down(0, left.x + left.radius, left.y)
         tracker.down(1, a)
         tracker.down(2, dpad)
         tracker.move(2, dpad.x, dpad.y - dpad.radius)
+        tracker.down(3, lt)
         tracker.cancel()
         assertEquals(GamepadState.NEUTRAL, tracker.state)
         tracker.move(0, left.x, left.y + left.radius)
