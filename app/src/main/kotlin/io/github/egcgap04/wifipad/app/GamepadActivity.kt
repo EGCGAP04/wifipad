@@ -22,6 +22,8 @@ class GamepadActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val view = GamepadView(this)
+        // Only while the view is on screen: the screen can turn off again once the gamepad is left.
+        view.keepScreenOn = true
         setContentView(view)
         val settings = ConnectionStore(this).load()
         sender = UdpSender(settings.host, settings.port, view.state)
