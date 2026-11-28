@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import io.github.egcgap04.wifipad.protocol.GamepadState
@@ -75,7 +76,10 @@ class GamepadView @JvmOverloads constructor(context: Context, attrs: AttributeSe
 
     private fun publish() {
         val new = tracker?.state ?: GamepadState.NEUTRAL
-        if (new != mutableState.value) {
+        val old = mutableState.value
+        if (new != old) {
+            // Respects the system touch feedback setting, and needs no VIBRATE permission.
+            if (new.hasNewPress(old)) performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
             mutableState.value = new
             invalidate()
         }

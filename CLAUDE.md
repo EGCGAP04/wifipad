@@ -108,7 +108,8 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 - L3/R3: doble toque en el stick. El segundo toque tiene que llegar a menos de 300 ms del **primer toque** (no de cuando se levantó), así volver a agarrar el stick enseguida después de moverlo no cuenta. `TouchTracker` recibe el tiempo del evento (`MotionEvent.getEventTime()`), así se testea sin reloj.
 - El estado se publica en un `StateFlow<GamepadState>`.
 - `UdpSender`: corrutina en `Dispatchers.IO` que cada ~16 ms toma el último estado, lo codifica con `:protocol` y lo manda con `DatagramSocket`. No encola estados. Cada `run()` usa un socket nuevo y empieza `seq` en 0: el servidor lo ve como un cliente nuevo y lo acepta cuando vence el anterior. Los errores de envío se ignoran (el próximo paquete reintenta). Se testea contra un socket local.
-- Pantalla del gamepad: landscape (`sensorLandscape`) y fullscreen inmersivo. `FLAG_KEEP_SCREEN_ON` y la vibración quedan para M4.
+- Pantalla del gamepad: landscape (`sensorLandscape`), fullscreen inmersivo y siempre encendida (`keepScreenOn` de la vista, que vale solo mientras el control está en pantalla).
+- Vibración corta con `performHapticFeedback` cuando se aprieta algo nuevo: un botón, L3/R3, un gatillo o una dirección del D-pad. No vibra al soltar ni al mover un stick. No necesita permiso y respeta la respuesta táctil del sistema. Qué cuenta como "algo nuevo" lo decide `GamepadState.hasNewPress` (`Haptics.kt`), que es puro y tiene tests.
 - `GamepadActivity` corre el `UdpSender` entre `onResume` y `onPause`: al salir de la app o ir a segundo plano, cancela el envío y el sender manda un estado neutro antes de cerrar el socket.
 
 ## Convenciones
@@ -137,7 +138,7 @@ Verificar el gamepad virtual en la PC: `evtest` (eventos crudos) y `jstest-gtk` 
 - [x] M1: módulo `:protocol` con tests (incluye el vector de prueba). CI con GitHub Actions como check obligatorio de `main` y CodeQL para Kotlin y Actions.
 - [x] M2: `:server` funcionando con `runFakeClient`. Verificado con `evtest` y `jstest-gtk`.
 - [x] M3: `:app` MVP: campo IP/puerto, stick izquierdo, A/B/X/Y y Start, envío a 60 Hz.
-- [ ] M4: layout completo (dos sticks, gatillos, D-pad, bumpers), vibración, pantalla siempre encendida.
+- [x] M4: layout completo (dos sticks, gatillos, D-pad, bumpers), vibración, pantalla siempre encendida.
 - [ ] M5: descubrimiento automático de la PC en la red local.
 - [ ] M6: layouts configurables.
 - [ ] M7: giroscopio.
